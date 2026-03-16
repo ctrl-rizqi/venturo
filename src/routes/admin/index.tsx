@@ -69,10 +69,10 @@ function AdminLoading() {
 		<main className="page-wrap px-4 py-12">
 			<section className="island-shell rounded-2xl p-6 sm:p-8">
 				<p className="island-kicker mb-2">Admin</p>
-				<h1 className="display-title mb-3 text-3xl font-bold text-[var(--sea-ink)] sm:text-4xl">
+				<h1 className="display-title mb-3 text-3xl font-bold text-(--sea-ink) sm:text-4xl">
 					Memverifikasi sesi admin...
 				</h1>
-				<p className="m-0 text-sm text-[var(--sea-ink-soft)]">
+				<p className="m-0 text-sm text-(--sea-ink-soft)">
 					Sedang mengambil profile dari API menggunakan TanStack Query.
 				</p>
 			</section>
@@ -102,10 +102,10 @@ function AdminError({ error }: { error: Error }) {
 		<main className="page-wrap px-4 py-12">
 			<section className="island-shell rounded-2xl p-6 sm:p-8">
 				<p className="island-kicker mb-2">Admin</p>
-				<h1 className="display-title mb-3 text-3xl font-bold text-[var(--sea-ink)] sm:text-4xl">
+				<h1 className="display-title mb-3 text-3xl font-bold text-(--sea-ink) sm:text-4xl">
 					Akses admin gagal diverifikasi
 				</h1>
-				<p className="m-0 text-sm text-[var(--sea-ink-soft)]">{message}</p>
+				<p className="m-0 text-sm text-(--sea-ink-soft)">{message}</p>
 				<button
 					type="button"
 					onClick={() => window.location.reload()}
@@ -155,10 +155,10 @@ function RouteComponent() {
 				<div className="flex flex-wrap items-start justify-between gap-4">
 					<div>
 						<p className="island-kicker mb-2">Protected Admin Route</p>
-						<h1 className="display-title mb-3 text-3xl font-bold text-[var(--sea-ink)] sm:text-4xl">
+						<h1 className="display-title mb-3 text-3xl font-bold text-(--sea-ink) sm:text-4xl">
 							Welcome, {profile.name}
 						</h1>
-						<p className="m-0 text-sm text-[var(--sea-ink-soft)]">
+						<p className="m-0 text-sm text-(--sea-ink-soft)">
 							Halaman ini hanya tampil setelah login berhasil dan profile
 							terambil dari API lewat TanStack Query.
 						</p>
@@ -170,26 +170,26 @@ function RouteComponent() {
 							clearTokens();
 							window.location.assign(authRedirectUrl(currentAdminPath()));
 						}}
-						className="rounded-xl border border-[var(--line)] bg-white/70 px-4 py-2 text-sm font-semibold text-[var(--sea-ink)] transition hover:-translate-y-0.5"
+						className="rounded-xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5"
 					>
 						Logout
 					</button>
 				</div>
 
 				<div className="mt-6 grid gap-4 sm:grid-cols-2">
-					<article className="rounded-xl border border-[var(--line)] bg-white/60 p-4">
+					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
 						<p className="island-kicker mb-1">Email</p>
-						<p className="m-0 text-sm text-[var(--sea-ink)]">{profile.email}</p>
+						<p className="m-0 text-sm text-(--sea-ink)">{profile.email}</p>
 					</article>
-					<article className="rounded-xl border border-[var(--line)] bg-white/60 p-4">
+					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
 						<p className="island-kicker mb-1">Role</p>
-						<p className="m-0 text-sm text-[var(--sea-ink)]">{profile.role}</p>
+						<p className="m-0 text-sm text-(--sea-ink)">{profile.role}</p>
 					</article>
-					<article className="rounded-xl border border-[var(--line)] bg-white/60 p-4">
+					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
 						<p className="island-kicker mb-1">User ID</p>
-						<p className="m-0 text-sm text-[var(--sea-ink)]">{profile.id}</p>
+						<p className="m-0 text-sm text-(--sea-ink)">{profile.id}</p>
 					</article>
-					<article className="rounded-xl border border-[var(--line)] bg-white/60 p-4">
+					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
 						<p className="island-kicker mb-1">Avatar</p>
 						<a href={profile.avatar} target="_blank" rel="noreferrer">
 							Lihat avatar profile
