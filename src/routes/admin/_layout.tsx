@@ -1,5 +1,5 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { queryOptions } from "@tanstack/react-query";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
 	ApiError,
@@ -8,7 +8,7 @@ import {
 	hasStoredTokens,
 } from "#/lib/auth-api";
 
-const adminProfileQueryOptions = queryOptions({
+export const adminProfileQueryOptions = queryOptions({
 	queryKey: ["auth", "profile"],
 	queryFn: () => getProfileWithRefresh(),
 	staleTime: 30_000,
@@ -27,7 +27,7 @@ function authRedirectUrl(target: string): string {
 	return `/auth?redirect=${encodeURIComponent(target)}`;
 }
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/admin/_layout")({
 	beforeLoad: async ({ context, location }) => {
 		if (typeof window === "undefined") {
 			return;
@@ -92,8 +92,6 @@ function AdminError({ error }: { error: Error }) {
 			(error.status === 401 || error.status === 403)
 		) {
 			clearTokens();
-			// Delay slightly to allow the error UI to be seen if needed,
-			// though usually we want immediate redirect
 			window.location.assign(authRedirectUrl(currentAdminPath()));
 		}
 	}, [error]);
@@ -119,83 +117,10 @@ function AdminError({ error }: { error: Error }) {
 }
 
 function RouteComponent() {
-	const isClient = typeof window !== "undefined";
-	const tokensAvailable = isClient && hasStoredTokens();
-
-	const profileQuery = useQuery({
-		...adminProfileQueryOptions,
-		enabled: tokensAvailable,
-	});
-
-	useEffect(() => {
-		if (!isClient || tokensAvailable) {
-			return;
-		}
-
-		window.location.assign(authRedirectUrl(currentAdminPath()));
-	}, [isClient, tokensAvailable]);
-
-	if (!tokensAvailable || profileQuery.isPending) {
-		return <AdminLoading />;
-	}
-
-	if (profileQuery.error) {
-		throw profileQuery.error;
-	}
-
-	if (!profileQuery.data) {
-		return <AdminLoading />;
-	}
-
-	const profile = profileQuery.data;
-
 	return (
 		<main className="page-wrap px-4 py-12">
 			<section className="island-shell rounded-2xl p-6 sm:p-8">
-				<div className="flex flex-wrap items-start justify-between gap-4">
-					<div>
-						<p className="island-kicker mb-2">Protected Admin Route</p>
-						<h1 className="display-title mb-3 text-3xl font-bold text-(--sea-ink) sm:text-4xl">
-							Welcome, {profile.name}
-						</h1>
-						<p className="m-0 text-sm text-(--sea-ink-soft)">
-							Halaman ini hanya tampil setelah login berhasil dan profile
-							terambil dari API lewat TanStack Query.
-						</p>
-					</div>
-
-					<button
-						type="button"
-						onClick={() => {
-							clearTokens();
-							window.location.assign(authRedirectUrl(currentAdminPath()));
-						}}
-						className="rounded-xl border border-(--line) bg-white/70 px-4 py-2 text-sm font-semibold text-(--sea-ink) transition hover:-translate-y-0.5"
-					>
-						Logout
-					</button>
-				</div>
-
-				<div className="mt-6 grid gap-4 sm:grid-cols-2">
-					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
-						<p className="island-kicker mb-1">Email</p>
-						<p className="m-0 text-sm text-(--sea-ink)">{profile.email}</p>
-					</article>
-					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
-						<p className="island-kicker mb-1">Role</p>
-						<p className="m-0 text-sm text-(--sea-ink)">{profile.role}</p>
-					</article>
-					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
-						<p className="island-kicker mb-1">User ID</p>
-						<p className="m-0 text-sm text-(--sea-ink)">{profile.id}</p>
-					</article>
-					<article className="rounded-xl border border-(--line) bg-white/60 p-4">
-						<p className="island-kicker mb-1">Avatar</p>
-						<a href={profile.avatar} target="_blank" rel="noreferrer">
-							Lihat avatar profile
-						</a>
-					</article>
-				</div>
+				<Outlet />
 			</section>
 		</main>
 	);

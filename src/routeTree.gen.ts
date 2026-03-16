@@ -13,8 +13,9 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AuthLayoutRouteImport } from './routes/auth/_layout'
+import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
+import { Route as AdminLayoutIndexRouteImport } from './routes/admin/_layout.index'
 
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
@@ -36,44 +37,51 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth/_layout',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLayoutRoute = AdminLayoutRouteImport.update({
+  id: '/admin/_layout',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLayoutIndexRoute = AdminLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminLayoutRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/mcp': typeof McpRoute
+  '/admin': typeof AdminLayoutRouteWithChildren
   '/auth': typeof AuthLayoutRoute
-  '/admin/': typeof AdminIndexRoute
   '/auth/': typeof AuthIndexRoute
+  '/admin/': typeof AdminLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/mcp': typeof McpRoute
   '/auth': typeof AuthIndexRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin': typeof AdminLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/mcp': typeof McpRoute
+  '/admin/_layout': typeof AdminLayoutRouteWithChildren
   '/auth/_layout': typeof AuthLayoutRoute
-  '/admin/': typeof AdminIndexRoute
   '/auth/': typeof AuthIndexRoute
+  '/admin/_layout/': typeof AdminLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/mcp' | '/auth' | '/admin/' | '/auth/'
+  fullPaths: '/' | '/about' | '/mcp' | '/admin' | '/auth' | '/auth/' | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/about' | '/mcp' | '/auth' | '/admin'
   id:
@@ -81,17 +89,18 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/mcp'
+    | '/admin/_layout'
     | '/auth/_layout'
-    | '/admin/'
     | '/auth/'
+    | '/admin/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   McpRoute: typeof McpRoute
+  AdminLayoutRoute: typeof AdminLayoutRouteWithChildren
   AuthLayoutRoute: typeof AuthLayoutRoute
-  AdminIndexRoute: typeof AdminIndexRoute
   AuthIndexRoute: typeof AuthIndexRoute
 }
 
@@ -125,13 +134,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth/_layout': {
       id: '/auth/_layout'
       path: '/auth'
@@ -139,15 +141,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_layout': {
+      id: '/admin/_layout'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/_layout/': {
+      id: '/admin/_layout/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminLayoutIndexRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
   }
 }
+
+interface AdminLayoutRouteChildren {
+  AdminLayoutIndexRoute: typeof AdminLayoutIndexRoute
+}
+
+const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
+  AdminLayoutIndexRoute: AdminLayoutIndexRoute,
+}
+
+const AdminLayoutRouteWithChildren = AdminLayoutRoute._addFileChildren(
+  AdminLayoutRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   McpRoute: McpRoute,
+  AdminLayoutRoute: AdminLayoutRouteWithChildren,
   AuthLayoutRoute: AuthLayoutRoute,
-  AdminIndexRoute: AdminIndexRoute,
   AuthIndexRoute: AuthIndexRoute,
 }
 export const routeTree = rootRouteImport

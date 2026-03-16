@@ -209,7 +209,7 @@ function RouteComponent() {
 
 					<Button
 						variant="outline"
-						className="w-full h-14 border-[#E5E7EB] rounded-xl text-[#111827] font-bold bg-white hover:bg-gray-50 flex gap-3 text-base shadow-none"
+						className="w-full h-14 border-[#E5E7EB] rounded-xl text-[#111827] font-bold bg-white! hover:bg-gray-50! hover:text-[#2563EB] flex gap-3 text-base shadow-none"
 					>
 						<GoogleIcon />
 						Sign in with Google
