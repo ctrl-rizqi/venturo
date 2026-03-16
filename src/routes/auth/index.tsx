@@ -1,30 +1,143 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import {
+	ApiError,
+	getProfileWithRefresh,
+	hasStoredTokens,
+	type LoginPayload,
+	login,
+} from "#/lib/auth-api";
+
+type AuthSearch = {
+	redirect?: string;
+};
+
+function sanitizeInternalRedirect(rawRedirect?: string): string {
+	if (!rawRedirect) {
+		return "/";
+	}
+
+	if (!rawRedirect.startsWith("/")) {
+		return "/";
+	}
+
+	if (rawRedirect.startsWith("//")) {
+		return "/";
+	}
+
+	return rawRedirect;
+}
 
 export const Route = createFileRoute("/auth/")({
+	validateSearch: (search): AuthSearch => {
+		if (typeof search.redirect === "string") {
+			return { redirect: search.redirect };
+		}
+
+		return {};
+	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
+	const queryClient = useQueryClient();
+	const search = Route.useSearch();
+	const [email, setEmail] = useState("john@mail.com");
+	const [password, setPassword] = useState("changeme");
+	const [formError, setFormError] = useState<string | null>(null);
+
+	const safeRedirect = useMemo(
+		() => sanitizeInternalRedirect(search.redirect),
+		[search.redirect],
+	);
+
+	const profileQuery = useQuery({
+		queryKey: ["auth", "profile", "auth-page"],
+		queryFn: () => getProfileWithRefresh(),
+		enabled: hasStoredTokens(),
+		staleTime: 30_000,
+		retry: false,
+	});
+
+	const loginMutation = useMutation({
+		mutationFn: (payload: LoginPayload) => login(payload),
+		onMutate: () => {
+			setFormError(null);
+		},
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
+			// Redirect immediately after successful login and token storage
+			window.location.assign(safeRedirect);
+		},
+		onError: (error) => {
+			if (error instanceof Error) {
+				setFormError(error.message);
+				return;
+			}
+
+			setFormError("Login gagal. Silakan coba lagi.");
+		},
+	});
+
+	useEffect(() => {
+		if (profileQuery.data) {
+			window.location.assign(safeRedirect);
+		}
+	}, [profileQuery.data, safeRedirect]);
+
+	useEffect(() => {
+		if (
+			profileQuery.error instanceof ApiError &&
+			(profileQuery.error.status === 401 || profileQuery.error.status === 403)
+		) {
+			setFormError(null);
+		}
+	}, [profileQuery.error]);
+
+	const isSubmitting = loginMutation.isPending;
+
 	return (
-		<main className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-[#0B1120] p-4">
-			<div className="w-full max-w-[440px] flex flex-col items-center">
-				<div className="w-full bg-white rounded-[32px] p-10 shadow-2xl flex flex-col items-center">
+		<main className="fixed inset-0 z-60 flex flex-col items-center justify-center bg-[#0B1120] p-4">
+			<div className="w-full max-w-110 flex flex-col items-center">
+				<div className="w-full bg-white rounded-4xl p-10 shadow-2xl flex flex-col items-center">
 					<div className="bg-[#2563EB] rounded-xl p-3 mb-8">
 						<Zap className="text-white fill-white size-7" aria-hidden="true" />
 					</div>
 
-					<h1 className="text-3xl font-bold text-[#111827] mb-2 tracking-tight">
+					<h1 className="text-3xl font-bold text-[#111827] mb-2 tracking-tight text-center">
 						Welcome Back
 					</h1>
 					<p className="text-[#6B7280] mb-10 text-center font-medium">
 						Please enter your details to sign in
 					</p>
 
-					<form className="w-full space-y-7" action="#" method="post">
+					<form
+						className="w-full space-y-7"
+						onSubmit={(event) => {
+							event.preventDefault();
+
+							if (isSubmitting) {
+								return;
+							}
+
+							const payload: LoginPayload = {
+								email: email.trim(),
+								password,
+							};
+
+							if (!payload.email || !payload.password) {
+								setFormError("Email dan password wajib diisi.");
+								return;
+							}
+
+							loginMutation.mutate(payload);
+						}}
+					>
 						<div className="space-y-2.5">
 							<Label
 								htmlFor="email"
@@ -38,6 +151,8 @@ function RouteComponent() {
 								type="email"
 								autoComplete="email"
 								placeholder="name@company.com"
+								value={email}
+								onChange={(event) => setEmail(event.target.value)}
 								className="h-14 border-[#E5E7EB] bg-white rounded-xl px-4 text-[#111827] placeholder:text-[#9CA3AF] text-base focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all shadow-none"
 							/>
 						</div>
@@ -63,21 +178,30 @@ function RouteComponent() {
 								type="password"
 								autoComplete="current-password"
 								placeholder="••••••••"
+								value={password}
+								onChange={(event) => setPassword(event.target.value)}
 								className="h-14 border-[#E5E7EB] bg-white rounded-xl px-4 text-[#111827] placeholder:text-[#9CA3AF] text-base focus-visible:ring-blue-500/20 focus-visible:border-blue-500 transition-all shadow-none"
 							/>
 						</div>
 
+						{formError ? (
+							<p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+								{formError}
+							</p>
+						) : null}
+
 						<Button
 							type="submit"
-							className="w-full h-14 bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl text-base font-bold text-white shadow-xl shadow-blue-600/20 transition-all"
+							disabled={isSubmitting}
+							className="w-full h-14 bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl text-base font-bold text-white shadow-xl shadow-blue-600/20 transition-all disabled:opacity-70"
 						>
-							Sign In
+							{isSubmitting ? "Signing in..." : "Sign In"}
 						</Button>
 					</form>
 
 					<div className="w-full flex items-center gap-4 my-10">
 						<div className="h-px flex-1 bg-[#F3F4F6]" />
-						<span className="text-[10px] font-bold text-[#9CA3AF] tracking-widest">
+						<span className="text-[10px] font-bold text-[#9CA3AF] tracking-widest uppercase">
 							OR CONTINUE WITH
 						</span>
 						<div className="h-px flex-1 bg-[#F3F4F6]" />
@@ -85,7 +209,7 @@ function RouteComponent() {
 
 					<Button
 						variant="outline"
-						className="w-full h-14 border-[#E5E7EB] rounded-xl text-[#111827] font-bold hover:bg-[#F9FAFB] flex gap-3 text-base shadow-none"
+						className="w-full h-14 border-[#E5E7EB] rounded-xl text-[#111827] font-bold bg-white hover:bg-gray-50 flex gap-3 text-base shadow-none"
 					>
 						<GoogleIcon />
 						Sign in with Google
@@ -93,7 +217,7 @@ function RouteComponent() {
 
 					<div className="mt-10 pt-10 border-t border-[#F3F4F6] w-full text-center">
 						<p className="text-sm text-[#6B7280] font-medium">
-							Don't have an account?{" "}
+							Don&apos;t have an account?{" "}
 							<button
 								type="button"
 								className="text-[#2563EB] font-bold hover:underline bg-transparent border-none p-0 cursor-pointer"

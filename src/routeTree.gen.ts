@@ -13,6 +13,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AuthLayoutRouteImport } from './routes/auth/_layout'
 
 const McpRoute = McpRouteImport.update({
@@ -35,6 +36,11 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthLayoutRoute = AuthLayoutRouteImport.update({
   id: '/auth/_layout',
   path: '/auth',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/mcp': typeof McpRoute
   '/auth': typeof AuthLayoutRoute
+  '/admin/': typeof AdminIndexRoute
   '/auth/': typeof AuthIndexRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/mcp': typeof McpRoute
   '/auth': typeof AuthIndexRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -60,14 +68,22 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/mcp': typeof McpRoute
   '/auth/_layout': typeof AuthLayoutRoute
+  '/admin/': typeof AdminIndexRoute
   '/auth/': typeof AuthIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/mcp' | '/auth' | '/auth/'
+  fullPaths: '/' | '/about' | '/mcp' | '/auth' | '/admin/' | '/auth/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/mcp' | '/auth'
-  id: '__root__' | '/' | '/about' | '/mcp' | '/auth/_layout' | '/auth/'
+  to: '/' | '/about' | '/mcp' | '/auth' | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/mcp'
+    | '/auth/_layout'
+    | '/admin/'
+    | '/auth/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -75,6 +91,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   McpRoute: typeof McpRoute
   AuthLayoutRoute: typeof AuthLayoutRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   AuthIndexRoute: typeof AuthIndexRoute
 }
 
@@ -108,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/_layout': {
       id: '/auth/_layout'
       path: '/auth'
@@ -123,6 +147,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   McpRoute: McpRoute,
   AuthLayoutRoute: AuthLayoutRoute,
+  AdminIndexRoute: AdminIndexRoute,
   AuthIndexRoute: AuthIndexRoute,
 }
 export const routeTree = rootRouteImport
